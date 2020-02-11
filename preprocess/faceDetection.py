@@ -7,9 +7,12 @@ from moviepy.editor import *
 
 
 
-face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_pictures'
-video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\Video-frame-rate_24'
-output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_only_videos'
+# face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_pictures'
+# video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\Video-frame-rate_24'
+# output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_only_videos'
+face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testpicture'
+video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\test'
+output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testresult'
 f = os.listdir(face_directory_name)
 f = sorted(f)
 
@@ -31,13 +34,12 @@ for picture_name in f:
 
     video = VideoFileClip(video_directory_name + '/' + video_name)
 
-    #output video
-    output_video_name = picture_name[:-4] + '_1080.mp4'
-
     #begin detect
     width,height=video.size
     duration = video.duration  # == audio.duration, presented in seconds, float
     step = 0.5
+
+    suffix=1
     for t in range(1,int(duration / step)):  # runs through audio/video frames obtaining them by timestamp with step 100 msec
         t = t * step
         if t > video.duration: break
@@ -79,11 +81,16 @@ for picture_name in f:
         elif size_flag == 1 or delete_flag == 1:
             print("before flag = 1")
             before_flag = 1
+            # output video
+            if (len(output_video_list) > 1.5):
+                output_video_name = picture_name[:-4] +'_'+str(suffix)+ '_1080.mp4'
+                output_video = concatenate_videoclips(output_video_list)
+                output_video.write_videofile(output_directory_name + '/' + output_video_name)
+                suffix +=1
+            output_video_list.clear()
         else:
             before_flag = 0
             print("add")
             output_video_list.append(video.subclip(t-step,t))
 
     print(video_name + ' finished')
-    output_video=concatenate_videoclips(output_video_list)
-    output_video.write_videofile(output_directory_name+'/'+output_video_name)
