@@ -7,12 +7,13 @@ from moviepy.editor import *
 
 
 
-# face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_pictures'
-# video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\Video-frame-rate_24'
-# output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_only_videos'
-face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testpicture'
-video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\test'
-output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testresult'
+face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_pictures'
+video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\Video-frame-rate_24'
+output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\face_only_videos'
+
+# face_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testpicture'
+# video_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\test'
+# output_directory_name = 'C:\\Users\\research\\rainbow\\fake media\\testresult'
 f = os.listdir(face_directory_name)
 f = sorted(f)
 
@@ -38,23 +39,28 @@ for picture_name in f:
     width,height=video.size
     duration = video.duration  # == audio.duration, presented in seconds, float
     step = 0.5
+    SPF=1/video.fps
 
     suffix=1
+
     for t in range(1,int(duration / step)):  # runs through audio/video frames obtaining them by timestamp with step 100 msec
         t = t * step
         if t > video.duration: break
         video_frame = video.get_frame(t)  # numpy array representing RGB/gray frame
+        video_frame_previous=video.get_frame(t-SPF)
+        video_frame_next=video.get_frame(t+SPF)
         unknown_face_encodings = face_recognition.face_encodings(video_frame)
-        unknown_face_encodings = face_recognition.face_encodings(video_frame)
+        unknown_face_encodings_previous = face_recognition.face_encodings(video_frame_previous)
+        unknown_face_encodings_next = face_recognition.face_encodings(video_frame_next)
         face_locations = face_recognition.face_locations(video_frame)
 
-        if len(unknown_face_encodings) == 0:
+        if len(unknown_face_encodings) ==0 and len(unknown_face_encodings_next)== 0 and len(unknown_face_encodings_next)== 0 :
             size_flag = 1
             delete_flag = 1
         else:
             i = -1
             for unknown_face_encoding in unknown_face_encodings:
-                i = i + 1
+                i += 1
                 result = face_recognition.compare_faces([target_face_encoding], unknown_face_encoding)
                 if result == False:
                     delete_flag = 1
@@ -74,7 +80,6 @@ for picture_name in f:
                 size_flag = 1
             else:
                 size_flag = 0
-
         if before_flag == 1 and size_flag == 0 and delete_flag == 0:
             print("before flag = 0")
             before_flag = 0
@@ -82,8 +87,8 @@ for picture_name in f:
             print("before flag = 1")
             before_flag = 1
             # output video
-            if (len(output_video_list) > 1.5):
-                output_video_name = picture_name[:-4] +'_'+str(suffix)+ '_1080.mp4'
+            if (len(output_video_list) > 9):
+                output_video_name = picture_name[:-4] +'_'+str(suffix)+ '.mp4'
                 output_video = concatenate_videoclips(output_video_list)
                 output_video.write_videofile(output_directory_name + '/' + output_video_name)
                 suffix +=1
