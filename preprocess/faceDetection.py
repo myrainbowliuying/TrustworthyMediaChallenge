@@ -38,8 +38,8 @@ for picture_name in f:
     #begin detect
     width,height=video.size
     duration = video.duration  # == audio.duration, presented in seconds, float
-    step = 0.5
-    SPF=1/video.fps
+    step = 1
+    spf=8/video.fps
 
     suffix=1
 
@@ -47,21 +47,23 @@ for picture_name in f:
         t = t * step
         if t > video.duration: break
         video_frame = video.get_frame(t)  # numpy array representing RGB/gray frame
-        video_frame_previous=video.get_frame(t-SPF)
-        video_frame_next=video.get_frame(t+SPF)
-        unknown_face_encodings = face_recognition.face_encodings(video_frame)
+        video_frame_previous=video.get_frame(t-spf)
+        video_frame_previous2=video.get_frame(t-2*spf)
+        unknown_face_encodings_now = face_recognition.face_encodings(video_frame)
         unknown_face_encodings_previous = face_recognition.face_encodings(video_frame_previous)
-        unknown_face_encodings_next = face_recognition.face_encodings(video_frame_next)
-        face_locations = face_recognition.face_locations(video_frame)
-
-        if len(unknown_face_encodings) ==0 and len(unknown_face_encodings_next)== 0 and len(unknown_face_encodings_next)== 0 :
+        unknown_face_encodings_previous2 = face_recognition.face_encodings(video_frame_previous2)
+        face_locations_now = face_recognition.face_locations(video_frame)
+        face_locations_previous = face_recognition.face_locations(video_frame_previous)
+        face_locations_next = face_recognition.face_locations(video_frame_previous2)
+        face_locations=face_locations_now+face_locations_previous+face_locations_next
+        if len(unknown_face_encodings_now) ==0 and len(unknown_face_encodings_previous)== 0 and len(unknown_face_encodings_previous2)== 0 :
             size_flag = 1
             delete_flag = 1
         else:
             i = -1
-            for unknown_face_encoding in unknown_face_encodings:
+            for unknown_face_encoding in unknown_face_encodings_now+unknown_face_encodings_previous+unknown_face_encodings_previous2 :
                 i += 1
-                result = face_recognition.compare_faces([target_face_encoding], unknown_face_encoding)
+                result = face_recognition.compare_faces([target_face_encoding], unknown_face_encoding,tolerance=0.8)
                 if result == False:
                     delete_flag = 1
                 else:
@@ -87,7 +89,7 @@ for picture_name in f:
             print("before flag = 1")
             before_flag = 1
             # output video
-            if (len(output_video_list) > 9):
+            if (len(output_video_list) > 4):
                 output_video_name = picture_name[:-4] +'_'+str(suffix)+ '.mp4'
                 output_video = concatenate_videoclips(output_video_list)
                 output_video.write_videofile(output_directory_name + '/' + output_video_name)
