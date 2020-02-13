@@ -99,5 +99,11 @@ for picture_name in f:
             before_flag = 0
             print("add")
             output_video_list.append(video.subclip(t-step,t))
-
+        if t== (int(video.duration/step)-1) :
+            if (len(output_video_list) > 4):
+                output_video_name = picture_name[:-4] +'_'+str(suffix)+ '.mp4'
+                output_video = concatenate_videoclips(output_video_list)
+                output_video.write_videofile(output_directory_name + '/' + output_video_name)
+                suffix +=1
+            output_video_list.clear()
     print(video_name + ' finished')
